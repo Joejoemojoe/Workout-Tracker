@@ -106,7 +106,10 @@ function render(){
     const tdFb=document.createElement('td');const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
     const tdLog=document.createElement('td');const btn=document.createElement('button');btn.textContent='Log';btn.addEventListener('click',()=>{
       const entry={exercise:ex,sets:inSets.value,reps:inReps.value,weight:inWeight.value,feedback:fb.value,date:selected.day}
-      db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);init();render();
+      db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
+      // pulse feedback
+      btn.classList.add('pulse'); setTimeout(()=>btn.classList.remove('pulse'),300);
+      init();render();
     });tdLog.appendChild(btn);tr.appendChild(tdLog);
     tbody.appendChild(tr);
   });
