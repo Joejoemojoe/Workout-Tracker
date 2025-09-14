@@ -41,12 +41,16 @@ const workouts = {
 };
 
 const dayCycle = ['chest','back','arms','shoulders','legs','rest','rest'];
+const defaultPrescription = {
+  chest:{sets:3,reps:8},back:{sets:3,reps:10},arms:{sets:3,reps:12},shoulders:{sets:3,reps:10},legs:{sets:4,reps:10}
+};
 
 function getDateKey(d=new Date()){return d.toISOString().slice(0,10)}
 function getWeekdayName(dateKey){return new Date(dateKey).toLocaleDateString('en-US',{weekday:'long'})}
 
 const todayKey = getDateKey();
 const selected = { day: todayKey };
+let splitMode = (localStorage.getItem('splitMode')||'calendar');
 
 const STORAGE_KEY = 'workout-tracker-logs-v1'
 function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch(e){return {}}}
@@ -76,6 +80,9 @@ function init(){
       if(view==='tracker') renderTracker(); else render();
     })
   }
+  // split mode
+  const splitSel = document.getElementById('splitMode');
+  if(splitSel){ splitSel.value = splitMode; splitSel.onchange = (e)=>{ splitMode = e.target.value; localStorage.setItem('splitMode', splitMode); render(); } }
   // rest timer
   const timerBtn = document.getElementById('restTimer');
   if(timerBtn){
@@ -88,9 +95,23 @@ function init(){
 }
 
 function getTabForDate(dateKey){
-  const dow = new Date(dateKey).getDay(); // 0 Sun..6 Sat
-  // Map Sunday(0) to rest, Monday(1)=chest etc.
-  return dayCycle[(dow+6)%7];
+  if(splitMode==='calendar'){
+    const dow = new Date(dateKey).getDay(); // 0 Sun..6 Sat
+    return dayCycle[(dow+6)%7];
+  }
+  // auto mode: pick the next day in cycle after the last trained (non-rest) day
+  const last = getLastTrainedDay();
+  if(!last){
+    // start at current calendar-based suggestion
+    const dow = new Date(dateKey).getDay();
+    return dayCycle[(dow+6)%7];
+  }
+  const lastIdx = dayCycle.findIndex(x=>x===last);
+  for(let i=1;i<=7;i++){
+    const idx=(lastIdx+i)%dayCycle.length;
+    if(dayCycle[idx]!=="rest") return dayCycle[idx];
+  }
+  return 'rest';
 }
 
 function render(){
@@ -111,10 +132,12 @@ function render(){
     // mini history (last two entries for this exercise)
     const mini=document.createElement('div'); mini.className='mini-history'; mini.textContent = getMiniHistory(ex);
     nameWrap.appendChild(mini); tdName.appendChild(nameWrap); tr.appendChild(tdName);
-    const tdSets=document.createElement('td'); tdSets.dataset.label='Sets';
-    const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='e.g., 3';inSets.type='number';inSets.setAttribute('aria-label','Sets');tdSets.appendChild(inSets);tr.appendChild(tdSets);
+  const tdSets=document.createElement('td'); tdSets.dataset.label='Sets';
+  const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='e.g., 3';inSets.type='number';inSets.setAttribute('aria-label','Sets');
+  inSets.value = defaultPrescription[tab]?.sets ?? 3; tdSets.appendChild(inSets); tr.appendChild(tdSets);
   const tdReps=document.createElement('td'); tdReps.dataset.label='Reps';
-    const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='e.g., 10';inReps.type='number';inReps.setAttribute('aria-label','Reps');tdReps.appendChild(inReps);tr.appendChild(tdReps);
+  const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='e.g., 10';inReps.type='number';inReps.setAttribute('aria-label','Reps');
+  inReps.value = defaultPrescription[tab]?.reps ?? 10; tdReps.appendChild(inReps); tr.appendChild(tdReps);
     const tdWeight=document.createElement('td'); tdWeight.dataset.label='Weight';
     const stepWrap=document.createElement('div'); stepWrap.className='row-controls';
     const inWeight=document.createElement('input');inWeight.className='input';inWeight.placeholder='kg';inWeight.type='number';inWeight.setAttribute('aria-label','Weight in kg');
@@ -125,7 +148,8 @@ function render(){
     stepWrap.appendChild(inWeight); stepWrap.appendChild(stepper);
     tdWeight.appendChild(stepWrap); tr.appendChild(tdWeight);
   const tdSug=document.createElement('td'); tdSug.dataset.label='Suggest'; tdSug.className='small';
-    const sugVal=getSuggestedFor(ex); tdSug.textContent = (sugVal!==''? `${sugVal} kg` : '—'); tr.appendChild(tdSug);
+  const sugg = getSmartSuggestion(ex, tab);
+  tdSug.textContent = sugg.weight!==''? `${sugg.weight} kg` : '—'; tr.appendChild(tdSug);
   const tdFb=document.createElement('td'); tdFb.dataset.label='Feedback'; const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
   // RIR selector (0-4)
   const tdRir=document.createElement('td'); tdRir.dataset.label='RIR';
@@ -135,7 +159,7 @@ function render(){
     // Checklist (quick log per set)
     const tdChecklist=document.createElement('td'); tdChecklist.dataset.label='Checklist';
     const checklist=document.createElement('div'); checklist.className='checklist';
-    const todaysLogs = getTodayLogsForExercise(tab, ex);
+  const todaysLogs = getTodayLogsForExercise(tab, ex);
     const defaultSets = 3; const planned=(Number(inSets.value)||defaultSets);
     const totalBoxes = Math.max(planned, todaysLogs.length);
     for(let i=0;i<totalBoxes;i++){
@@ -143,7 +167,8 @@ function render(){
       if(!box.checked){
         box.addEventListener('change',()=>{
           if(box.checked){
-            const entry={exercise:ex,sets:1,reps:inReps.value,weight:inWeight.value,feedback:fb.value,rir:rir.value,date:selected.day}
+            const preset = getSmartSuggestion(ex, tab);
+            const entry={exercise:ex,sets:1,reps:inReps.value||preset.reps,weight:inWeight.value||preset.weight,feedback:fb.value,rir:rir.value,date:selected.day}
             db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
             render();
           }
@@ -156,7 +181,8 @@ function render(){
     tdChecklist.appendChild(checklist); tr.appendChild(tdChecklist);
 
     const tdLog=document.createElement('td'); tdLog.dataset.label='Action'; const btn=document.createElement('button');btn.textContent='Log Set';btn.addEventListener('click',()=>{
-      const entry={exercise:ex,sets:inSets.value,reps:inReps.value,weight:inWeight.value,feedback:fb.value,rir:rir.value,date:selected.day}
+  const preset = getSmartSuggestion(ex, tab);
+  const entry={exercise:ex,sets:inSets.value||preset.sets,reps:inReps.value||preset.reps,weight:inWeight.value||preset.weight,feedback:fb.value,rir:rir.value,date:selected.day}
       db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
       // pulse feedback
       btn.classList.add('pulse'); setTimeout(()=>btn.classList.remove('pulse'),300);
@@ -196,6 +222,38 @@ function getSuggestedFor(ex){
     }
   }
   return ''
+}
+
+function getSmartSuggestion(ex, tab){
+  // Start from default prescription
+  const pres = defaultPrescription[tab]||{sets:3,reps:10};
+  const base = {sets: pres.sets, reps: pres.reps, weight: ''};
+  // Latest matching entry
+  const keys = Object.keys(db).sort((a,b)=>b.localeCompare(a));
+  for(const k of keys){
+    const day = db[k]; if(!day) continue; for(const t in day){ const arr=day[t]; if(!Array.isArray(arr)) continue; for(let i=arr.length-1;i>=0;i--){ const item=arr[i]; if(item.exercise===ex && Number(item.weight)>0){
+      let inc = 2.5;
+      // Heuristics by RIR and feedback
+      const rir = item.rir!==undefined? Number(item.rir) : 2;
+      const fb = (item.feedback||'normal');
+      if(rir>=3 && fb==='strong') inc = 5;
+      else if(rir>=2 && fb!=='weak') inc = 2.5;
+      else if(rir<=1 || fb==='weak') inc = 0; // hold
+      const nextW = Math.max(0, Number(item.weight) + inc);
+      return {sets: pres.sets, reps: pres.reps, weight: Number.isFinite(nextW)? Number(nextW.toFixed(1)) : ''};
+    }} }
+  }
+  return base;
+}
+
+function getLastTrainedDay(){
+  const keys = Object.keys(db).sort((a,b)=>b.localeCompare(a));
+  for(const k of keys){
+    const day = db[k]; if(!day) continue;
+    const muscles = Object.keys(day);
+    for(const m of muscles){ if(m!=='rest' && Array.isArray(day[m]) && day[m].length>0) return m; }
+  }
+  return null;
 }
 
 function getTodayLogsForExercise(tab, ex){
