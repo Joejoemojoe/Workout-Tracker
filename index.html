@@ -19,6 +19,11 @@
         <div class="controls">
           <div class="today">Today: <span id="todayLabel"></span></div>
           <select id="previousDays"></select>
+          <label for="splitMode" class="small" style="margin-left:8px">Split:</label>
+          <select id="splitMode" title="Split mode">
+            <option value="calendar" selected>Calendar</option>
+            <option value="auto">Auto</option>
+          </select>
           <div class="status">
             <div id="progressRing" class="ring" aria-label="Daily progress" title="Daily completion">
               <svg viewBox="0 0 60 60" width="60" height="60" aria-hidden="true">
