@@ -113,7 +113,7 @@ function render(){
     nameWrap.appendChild(mini); tdName.appendChild(nameWrap); tr.appendChild(tdName);
     const tdSets=document.createElement('td'); tdSets.dataset.label='Sets';
     const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='e.g., 3';inSets.type='number';inSets.setAttribute('aria-label','Sets');tdSets.appendChild(inSets);tr.appendChild(tdSets);
-    const tdReps=document.createElement('td'); tdReps.dataset.label='Reps';
+  const tdReps=document.createElement('td'); tdReps.dataset.label='Reps';
     const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='e.g., 10';inReps.type='number';inReps.setAttribute('aria-label','Reps');tdReps.appendChild(inReps);tr.appendChild(tdReps);
     const tdWeight=document.createElement('td'); tdWeight.dataset.label='Weight';
     const stepWrap=document.createElement('div'); stepWrap.className='row-controls';
@@ -124,11 +124,39 @@ function render(){
     stepper.appendChild(dec); stepper.appendChild(inc);
     stepWrap.appendChild(inWeight); stepWrap.appendChild(stepper);
     tdWeight.appendChild(stepWrap); tr.appendChild(tdWeight);
-    const tdSug=document.createElement('td'); tdSug.dataset.label='Suggest'; tdSug.className='small';
+  const tdSug=document.createElement('td'); tdSug.dataset.label='Suggest'; tdSug.className='small';
     const sugVal=getSuggestedFor(ex); tdSug.textContent = (sugVal!==''? `${sugVal} kg` : '—'); tr.appendChild(tdSug);
-    const tdFb=document.createElement('td'); tdFb.dataset.label='Feedback'; const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
+  const tdFb=document.createElement('td'); tdFb.dataset.label='Feedback'; const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
+  // RIR selector (0-4)
+  const tdRir=document.createElement('td'); tdRir.dataset.label='RIR';
+  const rir=document.createElement('select'); rir.className='feedback'; rir.setAttribute('aria-label','Reps in Reserve');
+  ;[4,3,2,1,0].forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=`RIR ${v}`; o.selected=v===2; rir.appendChild(o)});
+  tdRir.appendChild(rir); tr.appendChild(tdRir);
+    // Checklist (quick log per set)
+    const tdChecklist=document.createElement('td'); tdChecklist.dataset.label='Checklist';
+    const checklist=document.createElement('div'); checklist.className='checklist';
+    const todaysLogs = getTodayLogsForExercise(tab, ex);
+    const defaultSets = 3; const planned=(Number(inSets.value)||defaultSets);
+    const totalBoxes = Math.max(planned, todaysLogs.length);
+    for(let i=0;i<totalBoxes;i++){
+      const box=document.createElement('input'); box.type='checkbox'; box.checked = i < todaysLogs.length; box.title = box.checked? 'Logged' : 'Tap to log set';
+      if(!box.checked){
+        box.addEventListener('change',()=>{
+          if(box.checked){
+            const entry={exercise:ex,sets:1,reps:inReps.value,weight:inWeight.value,feedback:fb.value,rir:rir.value,date:selected.day}
+            db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
+            render();
+          }
+        })
+      } else {
+        box.disabled = true;
+      }
+      checklist.appendChild(box);
+    }
+    tdChecklist.appendChild(checklist); tr.appendChild(tdChecklist);
+
     const tdLog=document.createElement('td'); tdLog.dataset.label='Action'; const btn=document.createElement('button');btn.textContent='Log Set';btn.addEventListener('click',()=>{
-      const entry={exercise:ex,sets:inSets.value,reps:inReps.value,weight:inWeight.value,feedback:fb.value,date:selected.day}
+      const entry={exercise:ex,sets:inSets.value,reps:inReps.value,weight:inWeight.value,feedback:fb.value,rir:rir.value,date:selected.day}
       db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
       // pulse feedback
       btn.classList.add('pulse'); setTimeout(()=>btn.classList.remove('pulse'),300);
@@ -138,10 +166,13 @@ function render(){
   });
   table.appendChild(tbody);card.appendChild(table);
   // history
-  const hist=document.createElement('div');hist.className='card view-enter';hist.innerHTML='<h3>History</h3>';
+  const hist=document.createElement('div');hist.className='card view-enter spacer-xl';hist.innerHTML='<h3>History</h3>';
   const d= db[selected.day]&&db[selected.day][tab] ? db[selected.day][tab] : [];
   if(d.length===0){const p=document.createElement('p');p.className='small';p.textContent='No logs for this day.';hist.appendChild(p)}else{
-    d.forEach((l)=>{const p=document.createElement('p');p.className='small';p.textContent=`Sets:${l.sets} Reps:${l.reps} W:${l.weight} Feedback:${l.feedback}`;hist.appendChild(p)})
+    d.forEach((l)=>{const p=document.createElement('p');p.className='small';
+      const rirTxt = (l.rir!==undefined)? ` RIR:${l.rir}`:'';
+      p.textContent=`${l.exercise} — ${l.weight}kg x ${l.reps}${rirTxt} (${l.feedback})`;
+      hist.appendChild(p)})
   }
   content.appendChild(card);content.appendChild(hist);
   updateProgressRing(tab);
@@ -167,11 +198,16 @@ function getSuggestedFor(ex){
   return ''
 }
 
+function getTodayLogsForExercise(tab, ex){
+  const list = db[selected.day] && db[selected.day][tab] ? db[selected.day][tab] : [];
+  return list.filter(item=>item.exercise===ex);
+}
+
 function getMiniHistory(ex){
   const keys = Object.keys(db).sort((a,b)=>b.localeCompare(a));
   const items=[];
   for(const k of keys){
-    const day=db[k]; if(!day) continue; for(const t in day){ const arr=day[t]; if(!Array.isArray(arr)) continue; for(let i=arr.length-1;i>=0;i--){ const it=arr[i]; if(it.exercise===ex){ items.push(`${it.weight||0}kg x ${it.reps||0}`); if(items.length>=2) return items.join(' • '); } } }
+    const day=db[k]; if(!day) continue; for(const t in day){ const arr=day[t]; if(!Array.isArray(arr)) continue; for(let i=arr.length-1;i>=0;i--){ const it=arr[i]; if(it.exercise===ex){ const rirTxt = (it.rir!==undefined)? ` @RIR ${it.rir}`:''; items.push(`${it.weight||0}kg x ${it.reps||0}${rirTxt}`); if(items.length>=2) return items.join(' • '); } } }
   }
   return items[0]||'No history';
 }
@@ -179,7 +215,8 @@ function getMiniHistory(ex){
 function updateProgressRing(tab){
   const today = db[selected.day] && db[selected.day][tab] ? db[selected.day][tab] : [];
   const totalExercises = (workouts[tab]||[]).length;
-  const completed = Math.min(totalExercises, today.length);
+  const completedExercises = new Set(today.map(x=>x.exercise)).size;
+  const completed = Math.min(totalExercises, completedExercises);
   const pct = totalExercises ? Math.round((completed/totalExercises)*100) : 0;
   const ring = document.getElementById('ringProgress');
   const label = document.getElementById('ringLabel');
