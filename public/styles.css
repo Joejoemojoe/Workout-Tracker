@@ -61,3 +61,15 @@ button.pulse{animation: pulse .3s ease}
 .stepper input{width:60px;text-align:center}
 .row-controls{display:flex;gap:8px;align-items:center;justify-content:center}
 .mini-history{margin-top:6px;color:var(--muted);font-size:12px}
+
+/* Responsive layout for phones */
+@media (max-width: 640px){
+  .controls{flex-wrap:wrap}
+  .exercise-table thead{display:none}
+  .exercise-table tr{display:grid; grid-template-columns: 1fr 1fr; gap:8px; padding:8px; border-bottom:1px solid rgba(255,255,255,0.06)}
+  .exercise-table td{display:flex; justify-content:space-between; align-items:center; padding:6px 4px}
+  .exercise-table td::before{content: attr(data-label); color: var(--muted); font-size:12px; margin-right:10px}
+  .row-controls{justify-content:flex-end}
+  select,button{padding:10px 14px}
+  .input{width:100%; max-width:120px}
+}

@@ -106,25 +106,28 @@ function render(){
   const tbody=document.createElement('tbody');
   workouts[tab].forEach((ex,idx)=>{
     const tr=document.createElement('tr');
-    const tdName=document.createElement('td');
+    const tdName=document.createElement('td'); tdName.dataset.label='Exercise';
     const nameWrap=document.createElement('div');nameWrap.innerHTML=`<div>${ex}</div>`;
     // mini history (last two entries for this exercise)
     const mini=document.createElement('div'); mini.className='mini-history'; mini.textContent = getMiniHistory(ex);
     nameWrap.appendChild(mini); tdName.appendChild(nameWrap); tr.appendChild(tdName);
-    const tdSets=document.createElement('td');const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='sets';inSets.type='number';tdSets.appendChild(inSets);tr.appendChild(tdSets);
-    const tdReps=document.createElement('td');const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='reps';inReps.type='number';tdReps.appendChild(inReps);tr.appendChild(tdReps);
-    const tdWeight=document.createElement('td');
+    const tdSets=document.createElement('td'); tdSets.dataset.label='Sets';
+    const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='e.g., 3';inSets.type='number';inSets.setAttribute('aria-label','Sets');tdSets.appendChild(inSets);tr.appendChild(tdSets);
+    const tdReps=document.createElement('td'); tdReps.dataset.label='Reps';
+    const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='e.g., 10';inReps.type='number';inReps.setAttribute('aria-label','Reps');tdReps.appendChild(inReps);tr.appendChild(tdReps);
+    const tdWeight=document.createElement('td'); tdWeight.dataset.label='Weight';
     const stepWrap=document.createElement('div'); stepWrap.className='row-controls';
-    const inWeight=document.createElement('input');inWeight.className='input';inWeight.placeholder='kg';inWeight.type='number';
+    const inWeight=document.createElement('input');inWeight.className='input';inWeight.placeholder='kg';inWeight.type='number';inWeight.setAttribute('aria-label','Weight in kg');
     const stepper=document.createElement('div'); stepper.className='stepper';
-    const dec=document.createElement('button'); dec.textContent='-'; dec.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)-2.5)};
-    const inc=document.createElement('button'); inc.textContent='+'; inc.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)+2.5)};
+    const dec=document.createElement('button'); dec.textContent='-'; dec.title='-2.5kg'; dec.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)-2.5)};
+    const inc=document.createElement('button'); inc.textContent='+'; inc.title='+2.5kg'; inc.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)+2.5)};
     stepper.appendChild(dec); stepper.appendChild(inc);
     stepWrap.appendChild(inWeight); stepWrap.appendChild(stepper);
     tdWeight.appendChild(stepWrap); tr.appendChild(tdWeight);
-    const tdSug=document.createElement('td');tdSug.className='small';tdSug.textContent=getSuggestedFor(ex);tr.appendChild(tdSug);
-    const tdFb=document.createElement('td');const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
-    const tdLog=document.createElement('td');const btn=document.createElement('button');btn.textContent='Log';btn.addEventListener('click',()=>{
+    const tdSug=document.createElement('td'); tdSug.dataset.label='Suggest'; tdSug.className='small';
+    const sugVal=getSuggestedFor(ex); tdSug.textContent = (sugVal!==''? `${sugVal} kg` : '—'); tr.appendChild(tdSug);
+    const tdFb=document.createElement('td'); tdFb.dataset.label='Feedback'; const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
+    const tdLog=document.createElement('td'); tdLog.dataset.label='Action'; const btn=document.createElement('button');btn.textContent='Log Set';btn.addEventListener('click',()=>{
       const entry={exercise:ex,sets:inSets.value,reps:inReps.value,weight:inWeight.value,feedback:fb.value,date:selected.day}
       db[selected.day]=db[selected.day]||{};db[selected.day][tab]=db[selected.day][tab]||[];db[selected.day][tab].push(entry);save(db);
       // pulse feedback
