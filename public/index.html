@@ -8,14 +8,17 @@
   </head>
   <body>
     <div id="app">
-      <header>
+      <header class="glass-header">
         <h1>Workout Tracker</h1>
+        <div class="segmented" role="tablist" aria-label="View switcher">
+          <button class="seg-btn active" role="tab" aria-selected="true" data-view="today">Today</button>
+          <button class="seg-btn" role="tab" aria-selected="false" data-view="tracker">Tracker</button>
+        </div>
       </header>
       <main>
         <div class="controls">
           <div class="today">Today: <span id="todayLabel"></span></div>
           <select id="previousDays"></select>
-          <button id="showTracker">Show Tracker</button>
         </div>
         <section id="content"></section>
       </main>
