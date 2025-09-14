@@ -64,7 +64,18 @@ function init(){
   sel.addEventListener('change',(e)=>{
     if(e.target.value) selected.day=e.target.value; render();
   })
-  document.getElementById('showTracker').addEventListener('click',()=>renderTracker())
+  // segmented control events
+  const segContainer = document.querySelector('.segmented');
+  if(segContainer){
+    segContainer.addEventListener('click',(e)=>{
+      const btn = e.target.closest('.seg-btn');
+      if(!btn) return;
+      segContainer.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.getAttribute('data-view');
+      if(view==='tracker') renderTracker(); else render();
+    })
+  }
   render();
 }
 
@@ -78,10 +89,10 @@ function render(){
   const content=document.getElementById('content');content.innerHTML='';
   const tab=getTabForDate(selected.day);
   if(tab==='rest'){
-    const card=document.createElement('div');card.className='card';card.innerHTML='<h2>Rest Day</h2><p class="small">Take a break and recover</p>'
+    const card=document.createElement('div');card.className='card view-enter';card.innerHTML='<h2>Rest Day</h2><p class="small">Take a break and recover</p>'
     content.appendChild(card);return
   }
-  const card=document.createElement('div');card.className='card';
+  const card=document.createElement('div');card.className='card view-enter';
   const dayHdr = document.createElement('h2'); dayHdr.textContent = `${tab.toUpperCase()} - ${getWeekdayName(selected.day)}`; card.appendChild(dayHdr);
   const table=document.createElement('table');table.className='exercise-table';
   const tbody=document.createElement('tbody');
@@ -101,7 +112,7 @@ function render(){
   });
   table.appendChild(tbody);card.appendChild(table);
   // history
-  const hist=document.createElement('div');hist.className='card';hist.innerHTML='<h3>History</h3>';
+  const hist=document.createElement('div');hist.className='card view-enter';hist.innerHTML='<h3>History</h3>';
   const d= db[selected.day]&&db[selected.day][tab] ? db[selected.day][tab] : [];
   if(d.length===0){const p=document.createElement('p');p.className='small';p.textContent='No logs for this day.';hist.appendChild(p)}else{
     d.forEach((l)=>{const p=document.createElement('p');p.className='small';p.textContent=`Sets:${l.sets} Reps:${l.reps} W:${l.weight} Feedback:${l.feedback}`;hist.appendChild(p)})
@@ -131,12 +142,14 @@ function getSuggestedFor(ex){
 
 function renderTracker(){
   const content=document.getElementById('content');content.innerHTML='';
-  const card=document.createElement('div');card.className='card';card.innerHTML='<h2>Tracker</h2>';
+  const card=document.createElement('div');card.className='card view-enter';card.innerHTML='<h2>Tracker</h2>';
   // weekly stats
   const weekKeys=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);weekKeys.push(getDateKey(d))}
   let sets=0,days=0;weekKeys.forEach(k=>{if(db[k]){days++;for(const t in db[k]){db[k][t].forEach(x=>{sets+=Number(x.sets)||0})}}})
   const p=document.createElement('p');p.className='small';p.textContent=`Sets this week: ${sets}`;card.appendChild(p);
-  const prog=document.createElement('div');prog.className='progress';const iBar=document.createElement('i');iBar.style.width=Math.min(100,Math.round((days/5)*100))+'%';prog.appendChild(iBar);card.appendChild(prog);
+  const prog=document.createElement('div');prog.className='progress';const iBar=document.createElement('i');
+  requestAnimationFrame(()=>{ iBar.style.width=Math.min(100,Math.round((days/5)*100))+'%'; });
+  prog.appendChild(iBar);card.appendChild(prog);
   content.appendChild(card);
 }
 

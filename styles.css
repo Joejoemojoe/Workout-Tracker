@@ -7,8 +7,9 @@
   --glass: rgba(255,255,255,0.03);
 }
 body{font-family:Inter,system-ui,Arial;margin:0;background:linear-gradient(180deg,var(--bg),#0b1116);color:#e6eef6}
-#app{max-width:900px;margin:40px auto;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:18px}
-header h1{text-align:center;margin:0 0 18px;font-size:28px}
+.glass-header{position:sticky;top:0;z-index:10;backdrop-filter: blur(16px);background:linear-gradient(180deg, rgba(20,24,32,0.85), rgba(20,24,32,0.6));border-bottom:1px solid rgba(255,255,255,0.06)}
+.glass-header h1{margin:0;padding:18px 20px 10px;font-size:24px;text-align:center}
+#app{max-width:900px;margin:0 auto 40px;padding:0 16px}
 .controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:18px}
 select,button{background:var(--card);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px 12px;border-radius:10px}
 .card{background:var(--card);padding:16px;border-radius:14px;margin:12px 0}
@@ -20,3 +21,16 @@ select,button{background:var(--card);border:1px solid rgba(255,255,255,0.03);col
 .small{font-size:13px;color:var(--muted)}
 .feedback{padding:6px;border-radius:8px;background:rgba(255,255,255,0.02)}
 footer{display:block;text-align:center;margin-top:18px;color:var(--muted)}
+
+/* Segmented control (Apple Music style) */
+.segmented{display:flex;justify-content:center;gap:0.5rem;padding:0 16px 12px}
+.segmented .seg-btn{border-radius:999px;border:1px solid rgba(255,255,255,0.08);padding:8px 16px;background:rgba(255,255,255,0.04);color:#cfd8e3;cursor:pointer;transition:all .25s ease}
+.segmented .seg-btn.active{background:linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));color:#fff;box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 6px 20px rgba(0,0,0,0.25)}
+.segmented .seg-btn:active{transform:scale(0.98)}
+
+/* Animations */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.card{animation: fadeIn .35s ease both}
+.view-enter{animation: fadeInUp .35s ease both}
+.progress > i{transition: width .6s cubic-bezier(.22,.61,.36,1)}
