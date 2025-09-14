@@ -76,6 +76,14 @@ function init(){
       if(view==='tracker') renderTracker(); else render();
     })
   }
+  // rest timer
+  const timerBtn = document.getElementById('restTimer');
+  if(timerBtn){
+    let timer=null, remain=120;
+    const fmt=(s)=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    const tick=()=>{remain--; timerBtn.textContent = `Rest ${fmt(remain)}`; if(remain<=0){clearInterval(timer);timer=null;timerBtn.textContent='Done'; timerBtn.classList.add('pulse'); setTimeout(()=>{timerBtn.textContent='Start 2:00';timerBtn.classList.remove('pulse'); remain=120},800)} };
+    timerBtn.onclick=()=>{ if(timer){clearInterval(timer); timer=null; timerBtn.textContent='Start 2:00'; remain=120; } else { timerBtn.textContent=`Rest ${fmt(remain)}`; timer=setInterval(tick,1000);} };
+  }
   render();
 }
 
@@ -98,10 +106,22 @@ function render(){
   const tbody=document.createElement('tbody');
   workouts[tab].forEach((ex,idx)=>{
     const tr=document.createElement('tr');
-    const tdName=document.createElement('td');tdName.textContent=ex;tr.appendChild(tdName);
+    const tdName=document.createElement('td');
+    const nameWrap=document.createElement('div');nameWrap.innerHTML=`<div>${ex}</div>`;
+    // mini history (last two entries for this exercise)
+    const mini=document.createElement('div'); mini.className='mini-history'; mini.textContent = getMiniHistory(ex);
+    nameWrap.appendChild(mini); tdName.appendChild(nameWrap); tr.appendChild(tdName);
     const tdSets=document.createElement('td');const inSets=document.createElement('input');inSets.className='input';inSets.placeholder='sets';inSets.type='number';tdSets.appendChild(inSets);tr.appendChild(tdSets);
     const tdReps=document.createElement('td');const inReps=document.createElement('input');inReps.className='input';inReps.placeholder='reps';inReps.type='number';tdReps.appendChild(inReps);tr.appendChild(tdReps);
-    const tdWeight=document.createElement('td');const inWeight=document.createElement('input');inWeight.className='input';inWeight.placeholder='kg';inWeight.type='number';tdWeight.appendChild(inWeight);tr.appendChild(tdWeight);
+    const tdWeight=document.createElement('td');
+    const stepWrap=document.createElement('div'); stepWrap.className='row-controls';
+    const inWeight=document.createElement('input');inWeight.className='input';inWeight.placeholder='kg';inWeight.type='number';
+    const stepper=document.createElement('div'); stepper.className='stepper';
+    const dec=document.createElement('button'); dec.textContent='-'; dec.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)-2.5)};
+    const inc=document.createElement('button'); inc.textContent='+'; inc.onclick=()=>{inWeight.value=String((Number(inWeight.value)||0)+2.5)};
+    stepper.appendChild(dec); stepper.appendChild(inc);
+    stepWrap.appendChild(inWeight); stepWrap.appendChild(stepper);
+    tdWeight.appendChild(stepWrap); tr.appendChild(tdWeight);
     const tdSug=document.createElement('td');tdSug.className='small';tdSug.textContent=getSuggestedFor(ex);tr.appendChild(tdSug);
     const tdFb=document.createElement('td');const fb=document.createElement('select');fb.className='feedback';['strong','normal','weak','plateau'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;o.selected=v==='normal';fb.appendChild(o)});tdFb.appendChild(fb);tr.appendChild(tdFb);
     const tdLog=document.createElement('td');const btn=document.createElement('button');btn.textContent='Log';btn.addEventListener('click',()=>{
@@ -121,6 +141,7 @@ function render(){
     d.forEach((l)=>{const p=document.createElement('p');p.className='small';p.textContent=`Sets:${l.sets} Reps:${l.reps} W:${l.weight} Feedback:${l.feedback}`;hist.appendChild(p)})
   }
   content.appendChild(card);content.appendChild(hist);
+  updateProgressRing(tab);
 }
 
 function getSuggestedFor(ex){
@@ -141,6 +162,29 @@ function getSuggestedFor(ex){
     }
   }
   return ''
+}
+
+function getMiniHistory(ex){
+  const keys = Object.keys(db).sort((a,b)=>b.localeCompare(a));
+  const items=[];
+  for(const k of keys){
+    const day=db[k]; if(!day) continue; for(const t in day){ const arr=day[t]; if(!Array.isArray(arr)) continue; for(let i=arr.length-1;i>=0;i--){ const it=arr[i]; if(it.exercise===ex){ items.push(`${it.weight||0}kg x ${it.reps||0}`); if(items.length>=2) return items.join(' • '); } } }
+  }
+  return items[0]||'No history';
+}
+
+function updateProgressRing(tab){
+  const today = db[selected.day] && db[selected.day][tab] ? db[selected.day][tab] : [];
+  const totalExercises = (workouts[tab]||[]).length;
+  const completed = Math.min(totalExercises, today.length);
+  const pct = totalExercises ? Math.round((completed/totalExercises)*100) : 0;
+  const ring = document.getElementById('ringProgress');
+  const label = document.getElementById('ringLabel');
+  if(!ring || !label) return;
+  const circum = 2*Math.PI*26; // r=26
+  ring.style.strokeDasharray = String(circum);
+  ring.style.strokeDashoffset = String(circum - (pct/100)*circum);
+  label.textContent = `${pct}%`;
 }
 
 function renderTracker(){

@@ -41,3 +41,23 @@ footer{display:block;text-align:center;margin-top:18px;color:var(--muted)}
 .view-enter{animation: fadeInUp .35s ease both}
 .progress > i{transition: width .6s cubic-bezier(.22,.61,.36,1)}
 button.pulse{animation: pulse .3s ease}
+
+/* Progress ring + timer pill */
+.status{display:flex;align-items:center;gap:12px}
+.ring{position:relative;width:60px;height:60px;display:grid;place-items:center}
+.ring-label{position:absolute;font-size:12px;color:#cfe1f3}
+.ring svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:6}
+.ring-progress{fill:none;stroke:url(#grad);
+  stroke: linear-gradient(90deg,var(--accent),var(--accent-2));
+  stroke-dasharray: 163.36; /* 2*pi*26 */
+  stroke-dashoffset: 163.36;
+  stroke-linecap: round; stroke-width:6; transition: stroke-dashoffset .6s ease}
+.timer-pill{border-radius:999px;padding:8px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)}
+
+/* Exercise row steppers and small history */
+.stepper{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)}
+.stepper button{background:rgba(255,255,255,0.06);padding:6px 10px;border:none}
+.stepper input{width:60px;text-align:center}
+.row-controls{display:flex;gap:8px;align-items:center;justify-content:center}
+.mini-history{margin-top:6px;color:var(--muted);font-size:12px}

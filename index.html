@@ -19,6 +19,16 @@
         <div class="controls">
           <div class="today">Today: <span id="todayLabel"></span></div>
           <select id="previousDays"></select>
+          <div class="status">
+            <div id="progressRing" class="ring" aria-label="Daily progress" title="Daily completion">
+              <svg viewBox="0 0 60 60" width="60" height="60" aria-hidden="true">
+                <circle class="ring-track" cx="30" cy="30" r="26" />
+                <circle id="ringProgress" class="ring-progress" cx="30" cy="30" r="26" />
+              </svg>
+              <div id="ringLabel" class="ring-label">0%</div>
+            </div>
+            <button id="restTimer" class="timer-pill" aria-live="polite" title="Start rest timer">Start 2:00</button>
+          </div>
         </div>
         <section id="content"></section>
       </main>
