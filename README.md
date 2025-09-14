@@ -1,12 +1,30 @@
-# React + Vite
+# Workout Tracker (Static SPA)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple, GitHub Pages–friendly workout tracker inspired by Flex Wheeler's split. No build step required.
 
-Currently, two official plugins are available:
+## Live site
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Once GitHub Actions completes, your site will be available at:
 
-## Expanding the ESLint configuration
+- https://joejoemojoe.github.io/Workout-Tracker/
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Local run
+
+Open the static app directly in your browser:
+
+- `public/index.html`
+
+Everything runs client-side and stores data in `localStorage` under the key `workout-tracker-logs-v1`.
+
+## Deploy (GitHub Pages)
+
+This repo includes a workflow at `.github/workflows/pages.yml` that publishes the `public/` folder to the `gh-pages` branch on every push to `main`.
+
+- No Node or build step is required.
+- If the site doesn’t update, check the Actions tab for the job "Deploy static site to GitHub Pages".
+
+## Notes
+
+- The React/Vite scaffold remains in `src/` but is not used by the static app. Pages serves from `public/`.
+- The root `index.html` simply redirects to `public/` to avoid loading JSX on Pages.
+- You can safely remove the `src/`, `vite.config.js`, and `package.json` later if you decide to keep only the static app.

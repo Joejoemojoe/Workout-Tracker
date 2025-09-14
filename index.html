@@ -2,12 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>Workout Tracker</title>
+    <meta http-equiv="refresh" content="0; url=./public/" />
+    <script>
+      // Fallback redirect for environments that ignore meta refresh
+      (function(){
+        var target = './public/';
+        if (location.pathname && !location.pathname.endsWith('/')) {
+          // keep relative path consistent on GitHub Pages
+        }
+        window.location.replace(target);
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=./public/index.html" />
+    </noscript>
   </head>
   <body>
-    <div id="root"></div>
-  <script type="module" src="./src/main.jsx"></script>
+    Redirecting to the app… If you are not redirected, <a href="./public/index.html">click here</a>.
   </body>
-</html>
+  </html>
