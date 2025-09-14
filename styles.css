@@ -12,9 +12,14 @@ body{font-family:Inter,system-ui,Arial;margin:0;background:linear-gradient(180de
 #app{max-width:900px;margin:0 auto 40px;padding:0 16px}
 .controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:18px}
 select,button{background:var(--card);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px 12px;border-radius:10px}
+.card{transition: transform .2s ease, box-shadow .2s ease}
+.card:hover{transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25)}
+select:hover,button:hover{border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.06)}
+select:focus,button:focus,.input:focus{outline:none;border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,182,255,0.15)}
 .card{background:var(--card);padding:16px;border-radius:14px;margin:12px 0}
 .exercise-table{width:100%;border-collapse:collapse}
 .exercise-table td,.exercise-table th{padding:8px;text-align:center}
+.exercise-table tr:hover td{background: rgba(255,255,255,0.02)}
 .input{width:80px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#0a0f13;color:inherit}
 .progress{height:14px;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden}
 .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0}
@@ -31,6 +36,8 @@ footer{display:block;text-align:center;margin-top:18px;color:var(--muted)}
 /* Animations */
 @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(0.98)}100%{transform:scale(1)}}
 .card{animation: fadeIn .35s ease both}
 .view-enter{animation: fadeInUp .35s ease both}
 .progress > i{transition: width .6s cubic-bezier(.22,.61,.36,1)}
+button.pulse{animation: pulse .3s ease}
