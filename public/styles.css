@@ -1,0 +1,22 @@
+:root{
+  --bg:#0f141a;
+  --card:#141820;
+  --muted:#9aa3b2;
+  --accent:#1fb6ff;
+  --accent-2:#0ea5a6;
+  --glass: rgba(255,255,255,0.03);
+}
+body{font-family:Inter,system-ui,Arial;margin:0;background:linear-gradient(180deg,var(--bg),#0b1116);color:#e6eef6}
+#app{max-width:900px;margin:40px auto;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:18px}
+header h1{text-align:center;margin:0 0 18px;font-size:28px}
+.controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:18px}
+select,button{background:var(--card);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px 12px;border-radius:10px}
+.card{background:var(--card);padding:16px;border-radius:14px;margin:12px 0}
+.exercise-table{width:100%;border-collapse:collapse}
+.exercise-table td,.exercise-table th{padding:8px;text-align:center}
+.input{width:80px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#0a0f13;color:inherit}
+.progress{height:14px;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden}
+.progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0}
+.small{font-size:13px;color:var(--muted)}
+.feedback{padding:6px;border-radius:8px;background:rgba(255,255,255,0.02)}
+footer{display:block;text-align:center;margin-top:18px;color:var(--muted)}
